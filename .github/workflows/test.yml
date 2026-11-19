@@ -1,0 +1,24 @@
+name: Test Telegram OCR
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: telegram-ocr-test
+  cancel-in-progress: false
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Test photo transcription via Telegram (5 minute test window)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ALLOWED_USER_ID: ${{ secrets.ALLOWED_USER_ID }}
+        run: timeout --preserve-status --signal=INT --kill-after=15s 300s python bot.py
